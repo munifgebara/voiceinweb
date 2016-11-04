@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Seu Gumga</title>
+</head>
+<body style="font-family:sans-serif">
+  <h1>Seu Gumga   <button id="start_button" onclick="voz(event)"> <img id="botao_img" src="mic.gif" alt="Start"></button></h1>
+  <h2>Status:<span id="status">inciando</span></h2>
+  <h2>Frase:<span id="frase">inciando</span></h2>
+  <h2>Contador:<span id="contador">0</span></h2>
+
+
+  <a href="index.html">Voltar</a>
+
+
+  <script>
+  var reconhecendo=false;
+  function status(texto){
+    console.log("INFO:",texto);
+    document.getElementById("status").innerHTML=texto;
+  }
+
+  function frase(texto){
+    console.log("FRASE:",texto);
+    document.getElementById("frase").innerHTML=texto;
+  }
+
+  if (!('webkitSpeechRecognition' in window)) {
+    alert("Api de reconhecimento não está presente no navegador");
+  }
+  else{
+    status('Api de reconhecimento de voz presente.');
+    var reconhecimento = new webkitSpeechRecognition();
+    reconhecimento.continuous = true;
+    reconhecimento.interimResults = true;
+    reconhecimento.onstart = function() {
+      reconhecendo = true;
+      document.getElementById("botao_img").src="mic-animate.gif";
+      status('Pode falar');
+    };
+    reconhecimento.onend = function(event) {
+      reconhecendo = false;
+      document.getElementById("botao_img").src="mic.gif";
+      status('FIM');
+      console.log("onend",event);
+    }
+    reconhecimento.onerror = function(event) {
+      document.getElementById("botao_img").src="mic-slash.gif";
+      status('ERRO');
+      console.log("onerror",event);
+    }
+    var tempoInicial=0;
+    reconhecimento.onresult = function(event) {
+      console.log("onresult",event);
+      for (var i = event.resultIndex; i < event.results.length; ++i) {
+        var fala=event.results[i][0].transcript.trim().replace(/ /g,'_').toLowerCase();
+        if (event.results[i].isFinal) {
+          frase (fala);
+        } else {
+          status(fala);
+          if (window[fala]){
+            if (Date.now()-tempoInicial>1000){
+              window[fala]();
+              tempoInicial=Date.now();
+            }
+          }
+        }
+      }
+    }
+  }
+
+  function voz(event) {
+    if (reconhecendo) {
+      reconhecimento.stop();
+      return;
+    }
+    reconhecimento.lang = "pt-BR";
+    reconhecimento.start();
+  }
+
+
+  function atualizaContador(){
+    console.log("Contador",contador);
+    document.getElementById("contador").innerHTML=contador;
+  }
+
+  function próximo(){
+    contador++;
+    atualizaContador();
+  }
+
+  function anterior(){
+    contador--;
+    atualizaContador();
+  }
+  function anterior_duas_vezes(){
+    contador-=2;
+    atualizaContador();
+  }
+
+  var contador=10;
+  atualizaContador();
+
+  </script>
+</body>
+</html>
